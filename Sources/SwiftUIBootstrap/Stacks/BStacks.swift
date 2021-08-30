@@ -50,6 +50,18 @@ public struct Alignment: Equatable {
 public let defaultStackSpacing: CGFloat = 8
 
 public protocol BStack: View {}
+extension BStack {
+    func marginValueForHorizontalAlign(with alignment: HorizontalAlignment) -> String {
+        switch alignment {
+        case .leading:
+            return "auto auto auto 0"
+        case .center:
+            return "0 auto"
+        case .trailing:
+            return "auto 0 auto auto"
+        }
+    }
+}
 
 extension Array: View where Element == AnyViewOrSpacer {
     public var body: Never {
@@ -161,16 +173,6 @@ public struct BHStack: BStack {
 
 public struct BVStack: BStack {
     let alignment: HorizontalAlignment
-    var textAlignKey: String {
-        switch alignment {
-        case .leading:
-            return "left"
-        case .center:
-            return "center"
-        case .trailing:
-            return "right"
-        }
-    }
     let spacing: CGFloat
     var spacingRounded: Double {
         Double(Int(spacing * 100)) * 0.01
@@ -198,7 +200,7 @@ public struct BVStack: BStack {
                 let isLast = i == views.count - 1
                 HTML("div", [
                     "class": "flex-column justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
-                    "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px");text-align:\(textAlignKey)"
+                    "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px");margin:\(marginValueForHorizontalAlign(with: alignment))"
                 ]) {
                     view
                 }
@@ -210,16 +212,6 @@ public struct BVStack: BStack {
 
 public struct BZStack: BStack {
     let alignment: Alignment
-    var textAlignKey: String {
-        switch alignment.horizontal {
-        case .leading:
-            return "left"
-        case .center:
-            return "center"
-        case .trailing:
-            return "right"
-        }
-    }
     var verticalAlignKey: String {
         switch alignment.vertical {
         case .top:
@@ -246,19 +238,20 @@ public struct BZStack: BStack {
             ForEach(0..<views.count) { i in
                 let view = views[i]
                 HTML("div", [
-                    "style": "grid-area: 1 / 1 / 1 / 1;display: flex"
+                    "class":"w-100 h-100 p-0",
+                    "style": "grid-area: 1 / 1 / 1 / 1;margin:\(marginValueForHorizontalAlign(with: alignment.horizontal));display:table"
                 ]) {
-                    HTML("div", [
-                        "class":"w-100 h-100",
-                        "style":"text-align:\(textAlignKey);display:table"
-                    ]) {
+//                    HTML("div", [
+////                        "class":"w-100",
+//                        "style":"text-align:\(textAlignKey);display:table"
+//                    ]) {
                         HTML("div", [
-                            "class":"h-100",
+//                            "class":"h-100",
                             "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
                         ]) {
                             view
                         }
-                    }
+//                    }
                 }
             }
         }

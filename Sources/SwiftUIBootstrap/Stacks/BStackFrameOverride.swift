@@ -46,12 +46,12 @@ public extension BStack {
             return false
         }()
         if classStr == "" {
-            self.frameOld(width: width, height: height)
+            self.frameOld(width: width, height: height, alignment: alignment)
         } else {
             if hasNonInfinteValue {
                 HTML("div", ["class":classStr]) {
                     self
-                }.frameOld(width: width == .infinity ? nil : width, height: height == .infinity ? nil : height)
+                }.frameOld(width: width == .infinity ? nil : width, height: height == .infinity ? nil : height, alignment: alignment)
             } else {
                 HTML("div", ["class":classStr]) {
                     self
