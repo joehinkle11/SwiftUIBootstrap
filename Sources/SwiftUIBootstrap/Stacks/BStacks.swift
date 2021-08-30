@@ -23,6 +23,29 @@ public enum HorizontalAlignment: Equatable {
     case trailing
 }
 
+/// An alignment in both axes.
+public struct Alignment: Equatable {
+  public var horizontal: HorizontalAlignment
+  public var vertical: VerticalAlignment
+
+  public init(
+    horizontal: HorizontalAlignment,
+    vertical: VerticalAlignment
+  ) {
+    self.horizontal = horizontal
+    self.vertical = vertical
+  }
+
+  public static let topLeading = Self(horizontal: .leading, vertical: .top)
+  public static let top = Self(horizontal: .center, vertical: .top)
+  public static let topTrailing = Self(horizontal: .trailing, vertical: .top)
+  public static let leading = Self(horizontal: .leading, vertical: .center)
+  public static let center = Self(horizontal: .center, vertical: .center)
+  public static let trailing = Self(horizontal: .trailing, vertical: .center)
+  public static let bottomLeading = Self(horizontal: .leading, vertical: .bottom)
+  public static let bottom = Self(horizontal: .center, vertical: .bottom)
+  public static let bottomTrailing = Self(horizontal: .trailing, vertical: .bottom)
+}
 
 public let defaultStackSpacing: CGFloat = 8
 
@@ -176,6 +199,65 @@ public struct BVStack: BStack {
                 HTML("div", [
                     "class": "flex-column justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
                     "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px");text-align:\(textAlignKey)"
+                ]) {
+                    view
+                }
+            }
+        }
+    }
+}
+
+
+public struct BZStack: BStack {
+    let alignment: Alignment
+    var verticalAlignKey: String {
+        switch alignment.vertical {
+        case .top:
+            return "top"
+        case .center:
+            return "middle"
+        case .bottom:
+            return "bottom"
+        }
+    }
+    var textAlignKey: String {
+        switch alignment.horizontal {
+        case .leading:
+            return "left"
+        case .center:
+            return "center"
+        case .trailing:
+            return "right"
+        }
+    }
+    let spacing: CGFloat
+    var spacingRounded: Double {
+        Double(Int(spacing * 100)) * 0.01
+    }
+    let content: () -> [AnyViewOrSpacer]
+    
+    public init(
+        alignment: Alignment = .center,
+        spacing: CGFloat? = nil,
+        @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
+    ) {
+        self.alignment = alignment
+        self.spacing = spacing ?? defaultStackSpacing
+        self.content = content
+    }
+    
+    public var body: some View {
+        HTML("div", ["class": "w-100 h-100 p-0","style":"display:grid"]) {
+            let _views = content().flatten()
+            let hasSpacers = _views.contains(where: {$0.isSpacer})
+            let views: [AnyViewOrSpacer] = hasSpacers ? _views : ([AnyViewOrSpacer(Spacer())] + _views + [AnyViewOrSpacer(Spacer())])
+            ForEach(0..<views.count) { i in
+                let view = views[i]
+                let isFirst = i == 0
+                let isLast = i == views.count - 1
+                HTML("div", [
+                    "class": "flex-column justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
+                    "style": "grid-area: 1 / 1 / 1 / 1;text-align:\(textAlignKey)"
                 ]) {
                     view
                 }
@@ -343,6 +425,7 @@ public extension ViewArrayBuilder {
     }
 }
 #else
-typealias BHStack = BHStack
-typealias BVStack = BVStack
+typealias BHStack = HStack
+typealias BVStack = VStack
+typealias BZStack = VStack
 #endif
