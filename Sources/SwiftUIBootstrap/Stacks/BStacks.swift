@@ -18,18 +18,46 @@ public enum VerticalAlignment: Equatable {
 
 public let defaultStackSpacing: CGFloat = 8
 
+public struct AnyViewOrSpacer {
+    let anyView: AnyView?
+    let spacer: Spacer?
+    
+    init<T: View>(_ view: T) {
+        if let spacer = view as? Spacer {
+            self.anyView = nil
+            self.spacer = spacer
+        } else {
+            self.anyView = AnyView(view)
+            self.spacer = nil
+        }
+    }
+    
+    var isSpacer: Bool {
+        spacer != nil
+    }
+    
+    @ViewBuilder
+    var view: some View {
+        if let spacer = spacer {
+            spacer
+        } else {
+            anyView
+        }
+    }
+}
+
 public struct BHStack: View {
     let alignment: VerticalAlignment
     let spacing: CGFloat
     var spacingInt: Int {
         max(0, min(5, Int(spacing)))
     }
-    let content: () -> [AnyView]
+    let content: () -> [AnyViewOrSpacer]
 
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
-        @ViewArrayBuilder content: @escaping () -> [AnyView]
+        @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
         self.spacing = spacing ?? defaultStackSpacing
@@ -37,13 +65,13 @@ public struct BHStack: View {
     }
     
     public var body: some View {
-        HTML("div", ["class": "container-fluid"]) {
+        HTML("div", ["class": "container-fluid p-0"]) {
             HTML("div", ["class": "row \(spacingInt == 0 ? "g-0" : "gx-\(spacingInt)")"]) {
                 let views = content()
                 ForEach(0..<views.count) { i in
                     let view = views[i]
-                    HTML("div", ["class": "col"]) {
-                        view.background(Color.red)
+                    HTML("div", ["class": view.isSpacer ? "col" : "col-auto"]) {
+                        view.view
                     }
                 }
             }
@@ -77,19 +105,19 @@ public struct BVStack<Content: View>: View {
     }
 }
 @_functionBuilder public enum ViewArrayBuilder {
-  public static func buildBlock() -> [AnyView] { [] }
+  public static func buildBlock() -> [AnyViewOrSpacer] { [] }
 
   public static func buildBlock<Content>(
     _ content: Content
-  ) -> [AnyView] where Content: View {
-    [AnyView(content)]
+  ) -> [AnyViewOrSpacer] where Content: View {
+    [AnyViewOrSpacer(content)]
   }
 }
 public extension ViewArrayBuilder {
-  static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> [AnyView]
+  static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> [AnyViewOrSpacer]
     where C0: View, C1: View
   {
-    [AnyView(c0),AnyView(c1)]
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1)]
   }
 }
 
@@ -98,8 +126,8 @@ public extension ViewArrayBuilder {
     _ c0: C0,
     _ c1: C1,
     _ c2: C2
-  ) -> [AnyView] where C0: View, C1: View, C2: View {
-    [AnyView(c0),AnyView(c1),AnyView(c2)]
+  ) -> [AnyViewOrSpacer] where C0: View, C1: View, C2: View {
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2)]
   }
 }
 
@@ -109,8 +137,8 @@ public extension ViewArrayBuilder {
     _ c1: C1,
     _ c2: C2,
     _ c3: C3
-  ) -> [AnyView] where C0: View, C1: View, C2: View, C3: View {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3)]
+  ) -> [AnyViewOrSpacer] where C0: View, C1: View, C2: View, C3: View {
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3)]
   }
 }
 
@@ -121,8 +149,8 @@ public extension ViewArrayBuilder {
     _ c2: C2,
     _ c3: C3,
     _ c4: C4
-  ) -> [AnyView] where C0: View, C1: View, C2: View, C3: View, C4: View {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3),AnyView(c4)]
+  ) -> [AnyViewOrSpacer] where C0: View, C1: View, C2: View, C3: View, C4: View {
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3),AnyViewOrSpacer(c4)]
   }
 }
 
@@ -134,10 +162,10 @@ public extension ViewArrayBuilder {
     _ c3: C3,
     _ c4: C4,
     _ c5: C5
-  ) -> [AnyView]
+  ) -> [AnyViewOrSpacer]
     where C0: View, C1: View, C2: View, C3: View, C4: View, C5: View
   {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3),AnyView(c4),AnyView(c5)]
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3),AnyViewOrSpacer(c4),AnyViewOrSpacer(c5)]
   }
 }
 
@@ -150,10 +178,10 @@ public extension ViewArrayBuilder {
     _ c4: C4,
     _ c5: C5,
     _ c6: C6
-  ) -> [AnyView]
+  ) -> [AnyViewOrSpacer]
     where C0: View, C1: View, C2: View, C3: View, C4: View, C5: View, C6: View
   {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3),AnyView(c4),AnyView(c5),AnyView(c6)]
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3),AnyViewOrSpacer(c4),AnyViewOrSpacer(c5),AnyViewOrSpacer(c6)]
   }
 }
 
@@ -167,10 +195,10 @@ public extension ViewArrayBuilder {
     _ c5: C5,
     _ c6: C6,
     _ c7: C7
-  ) -> [AnyView]
+  ) -> [AnyViewOrSpacer]
     where C0: View, C1: View, C2: View, C3: View, C4: View, C5: View, C6: View, C7: View
   {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3),AnyView(c4),AnyView(c5),AnyView(c6),AnyView(c7)]
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3),AnyViewOrSpacer(c4),AnyViewOrSpacer(c5),AnyViewOrSpacer(c6),AnyViewOrSpacer(c7)]
   }
 }
 
@@ -185,10 +213,10 @@ public extension ViewArrayBuilder {
     _ c6: C6,
     _ c7: C7,
     _ c8: C8
-  ) -> [AnyView]
+  ) -> [AnyViewOrSpacer]
     where C0: View, C1: View, C2: View, C3: View, C4: View, C5: View, C6: View, C7: View, C8: View
   {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3),AnyView(c4),AnyView(c5),AnyView(c6),AnyView(c7),AnyView(c8)]
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3),AnyViewOrSpacer(c4),AnyViewOrSpacer(c5),AnyViewOrSpacer(c6),AnyViewOrSpacer(c7),AnyViewOrSpacer(c8)]
   }
 }
 
@@ -204,11 +232,11 @@ public extension ViewArrayBuilder {
     _ c7: C7,
     _ c8: C8,
     _ c9: C9
-  ) -> [AnyView]
+  ) -> [AnyViewOrSpacer]
     where C0: View, C1: View, C2: View, C3: View, C4: View, C5: View, C6: View, C7: View, C8: View,
     C9: View
   {
-    [AnyView(c0),AnyView(c1),AnyView(c2),AnyView(c3),AnyView(c4),AnyView(c5),AnyView(c6),AnyView(c7),AnyView(c8),AnyView(c9)]
+    [AnyViewOrSpacer(c0),AnyViewOrSpacer(c1),AnyViewOrSpacer(c2),AnyViewOrSpacer(c3),AnyViewOrSpacer(c4),AnyViewOrSpacer(c5),AnyViewOrSpacer(c6),AnyViewOrSpacer(c7),AnyViewOrSpacer(c8),AnyViewOrSpacer(c9)]
   }
 }
 #else
