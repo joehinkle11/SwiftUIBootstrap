@@ -21,6 +21,9 @@ public let defaultStackSpacing: CGFloat = 8
 public struct BHStack: View {
     let alignment: VerticalAlignment
     let spacing: CGFloat
+    var spacingInt: Int {
+        max(0, min(5, Int(spacing)))
+    }
     let content: () -> [AnyView]
 
     public init(
@@ -34,8 +37,8 @@ public struct BHStack: View {
     }
     
     public var body: some View {
-        HTML("div", ["class": "container"]) {
-            HTML("div", ["class": "row"]) {
+        HTML("div", ["class": "container-fluid"]) {
+            HTML("div", ["class": "row \(spacingInt == 0 ? "g-0" : "gx-\(spacingInt)")"]) {
                 let views = content()
                 ForEach(0..<views.count) { i in
                     let view = views[i]
