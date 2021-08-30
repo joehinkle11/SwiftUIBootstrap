@@ -16,6 +16,14 @@ public enum VerticalAlignment: Equatable {
   case bottom
 }
 
+/// An alignment position along the horizontal axis.
+public enum HorizontalAlignment: Equatable {
+  case leading
+  case center
+  case trailing
+}
+
+
 public let defaultStackSpacing: CGFloat = 8
 
 public struct AnyViewOrSpacer {
@@ -79,26 +87,37 @@ public struct BHStack: View {
     }
 }
 
-public struct BVStack<Content: View>: View {
-    let alignment: VerticalAlignment
+public struct BVStack: View {
+    let alignment: HorizontalAlignment
     let spacing: CGFloat
-    let content: Content
+    var spacingRounded: Double {
+        Double(Int(spacing * 100)) * 0.01
+    }
+    let content: () -> [AnyViewOrSpacer]
 
     public init(
-        alignment: VerticalAlignment = .center,
+        alignment: HorizontalAlignment = .center,
         spacing: CGFloat? = nil,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
         self.spacing = spacing ?? defaultStackSpacing
-        self.content = content()
+        self.content = content
     }
     
     public var body: some View {
-        HTML("div", ["class": "container"]) {
-            HTML("div", ["class": "col"]) {
-                HTML("div", ["class": "row"]) {
-                    Text("one")
+        HTML("div", ["class": "h-100 d-flex flex-column p-0"]) {
+            let views = content()
+            let hasNoSpacers = !views.contains(where: {$0.isSpacer})
+            ForEach(0..<views.count) { i in
+                let view = views[i]
+                let isFirst = i == 0
+                let isLast = i == views.count - 1
+                HTML("div", [
+                    "class": "flex-column justify-content-center\(hasNoSpacers || view.isSpacer ? " flex-grow-1" : "")",
+                    "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px;")"
+                ]) {
+                    view.view
                 }
             }
         }
