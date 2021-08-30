@@ -26,6 +26,8 @@ public enum HorizontalAlignment: Equatable {
 
 public let defaultStackSpacing: CGFloat = 8
 
+public protocol BStack: View {}
+
 extension Array: View where Element == AnyViewOrSpacer {
     public var body: Never {
         fatalError()
@@ -84,7 +86,7 @@ public struct AnyViewOrSpacer: View {
     }
 }
 
-public struct BHStack: View {
+public struct BHStack: BStack {
     let alignment: VerticalAlignment
     var verticalAlignKey: String {
         switch alignment {
@@ -134,7 +136,7 @@ public struct BHStack: View {
     }
 }
 
-public struct BVStack: View {
+public struct BVStack: BStack {
     let alignment: HorizontalAlignment
     var textAlignKey: String {
         switch alignment {
