@@ -15,5 +15,5 @@ VStack {
 If your code is being compiled for both WASM and native destinations (such as iOS), you can use `ImageOrBI` to support both SF Symbols and Bootstrap icons.
 
 ```swift
-ImageOrBI(systemName: "checkmark.circle" bi: "circle-circle")
+ImageOrBI(systemName: "checkmark.circle", bi: "check-circle")
 ```
