@@ -90,6 +90,9 @@ public struct BHStack: View {
     var spacingInt: Int {
         max(0, min(5, Int(spacing)))
     }
+    var spacingRounded: Double {
+        Double(Int(spacing * 100)) * 0.01
+    }
     let content: () -> [AnyViewOrSpacer]
     
     public init(
@@ -103,14 +106,30 @@ public struct BHStack: View {
     }
     
     public var body: some View {
-        HTML("div", ["class": "container-fluid p-0"]) {
-            HTML("div", ["class": "row \(spacingInt == 0 ? "g-0" : "gx-\(spacingInt)")"]) {
-                let views = content()
-                ForEach(0..<views.count) { i in
-                    let view = views[i]
-                    HTML("div", ["class": view.isSpacer ? "col" : "col-auto"]) {
-                        view
-                    }
+//        HTML("div", ["class": "container-fluid p-0"]) {
+//            HTML("div", ["class": "row \(spacingInt == 0 ? "g-0" : "gx-\(spacingInt)")"]) {
+//                let views = content()
+//                ForEach(0..<views.count) { i in
+//                    let view = views[i]
+//                    HTML("div", ["class": view.isSpacer ? "col" : "col-auto"]) {
+//                        view
+//                    }
+//                }
+//            }
+//        }
+        HTML("div", ["class": "w-100 d-flex flex-row p-0"]) {
+            let _views = content().flatten()
+            let hasSpacers = _views.contains(where: {$0.isSpacer})
+            let views: [AnyViewOrSpacer] = hasSpacers ? _views : ([AnyViewOrSpacer(Spacer())] + _views + [AnyViewOrSpacer(Spacer())])
+            ForEach(0..<views.count) { i in
+                let view = views[i]
+                let isFirst = i == 0
+                let isLast = i == views.count - 1
+                HTML("div", [
+                    "class": "flex-row justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
+                    "style": "\(isFirst ? "" : "padding-left:\(spacingRounded)px;")\(isLast ? "" : "padding-right:\(spacingRounded)px;")"
+                ]) {
+                    view
                 }
             }
         }
@@ -148,10 +167,7 @@ public struct BVStack: View {
                     "class": "flex-column justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
                     "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px;")"
                 ]) {
-//                    HStack {
-                        Text("i: \(i)")
-                        view
-//                    }
+                    view
                 }
             }
         }
