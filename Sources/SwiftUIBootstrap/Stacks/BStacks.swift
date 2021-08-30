@@ -136,6 +136,16 @@ public struct BHStack: View {
 
 public struct BVStack: View {
     let alignment: HorizontalAlignment
+    var textAlignKey: String {
+        switch alignment {
+        case .leading:
+            return "left"
+        case .center:
+            return "center"
+        case .trailing:
+            return "right"
+        }
+    }
     let spacing: CGFloat
     var spacingRounded: Double {
         Double(Int(spacing * 100)) * 0.01
@@ -163,7 +173,7 @@ public struct BVStack: View {
                 let isLast = i == views.count - 1
                 HTML("div", [
                     "class": "flex-column justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
-                    "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px")"
+                    "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px");text-align:\(textAlignKey)"
                 ]) {
                     view
                 }
