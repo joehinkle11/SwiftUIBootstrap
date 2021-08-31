@@ -11,13 +11,15 @@ import TokamakDOM
 public struct BootstrapIcon: View {
     
     public let name: String
+    public var style: String = ""
     
-    public init(name: String) {
+    public init(name: String, style: String = "") {
         self.name = name
+        self.style = style
     }
     
     public var body: some View {
-        HTML("i", ["class": "bi-\(name)"])
+        HTML("i", ["class": "bi-\(name)","style":style])
     }
 }
 #endif

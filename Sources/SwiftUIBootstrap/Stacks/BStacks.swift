@@ -191,13 +191,13 @@ public struct BHStack: BStack {
     
     public var body: some View {
         HTML("div", ["class": "w-100 d-flex flex-row p-0"]) {
+            let _views = content().flatten()
+            let hasSpacers = _views.contains(where: {$0.shouldFillView})
             let views: [AnyViewOrSpacer] = {
                 if forceCenter {
-                    let _views = content().flatten()
-                    let hasSpacers = _views.contains(where: {$0.shouldFillView})
                     return hasSpacers ? _views : ([AnyViewOrSpacer(Spacer())] + _views + [AnyViewOrSpacer(Spacer())])
                 } else {
-                    return content().flatten()
+                    return _views
                 }
             }()
             ForEach(0..<views.count) { i in
@@ -205,7 +205,7 @@ public struct BHStack: BStack {
                 let isFirst = i == 0
                 let isLast = i == views.count - 1
                 HTML("div", [
-                    "class": "flex-row justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace.classStr)",
+                    "class": "flex-row justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(hasSpacers ? "" : fillSpace.classStr)",
                     "style": "\(isFirst ? "" : "padding-left:\(spacingRounded)px;")\(isLast ? "" : "padding-right:\(spacingRounded)px");display:table"
                 ]) {
                     HTML("div", [

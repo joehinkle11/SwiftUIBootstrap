@@ -30,6 +30,7 @@ public struct BootstrapButton<Label> : View where Label : View {
     
     let isOutlined: Bool
     let style: BootstrapButtonStyle
+    let rawStyle: String
     let size: BootstrapButtonSize?
     let action: () -> Void
     let label: () -> Label
@@ -42,8 +43,9 @@ public struct BootstrapButton<Label> : View where Label : View {
         return ""
     }
     
-    public init(_ style: BootstrapButtonStyle = .primary, isOutlined: Bool = false, size: BootstrapButtonSize? = nil, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label, onHover: ((Bool) -> ())? = nil) {
+    public init(_ style: BootstrapButtonStyle = .primary, rawStyle: String = "", isOutlined: Bool = false, size: BootstrapButtonSize? = nil, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label, onHover: ((Bool) -> ())? = nil) {
         self.style = style
+        self.rawStyle = rawStyle
         self.isOutlined = isOutlined
         self.size = size
         self.action = action
@@ -71,7 +73,7 @@ public struct BootstrapButton<Label> : View where Label : View {
     public var body: some View {
         DynamicHTML("button", [
             "class":"btn btn\(isOutlined ? "-outline" : "")-\(style.rawValue)\(sizeStr)",
-            "style":"box-shadow: none"
+            "style":"box-shadow:none;\(rawStyle)"
         ], listeners: listeners) {
             label()
         }

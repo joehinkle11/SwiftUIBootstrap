@@ -67,7 +67,7 @@ public struct HoverButton: View {
             #if canImport(TokamakDOM)
             DynamicHTML("button", [
                 "class":"btn",
-                "style":"box-shadow: none"
+                "style":"box-shadow:none"
             ], listeners: listeners) {
                 customHoverLabel(isHovering)
             }
@@ -82,11 +82,11 @@ public struct HoverButton: View {
             #endif
         } else if let title = title {
             #if canImport(TokamakDOM)
-            BootstrapButton(colorScheme == .dark ? .dark : .light, action: action) {
+            BootstrapButton(colorScheme == .dark ? .dark : .light, rawStyle: "filter: brightness(\(isHovering ? "1.5" : "1"))", action: action) {
                 Text(title).foregroundColor(colorScheme == .dark ? .white : .black)
             } onHover: {
                 isHovering = $0
-            }.brightness(isHovering ? 0.2 : 0)
+            }
             #elseif os(iOS)
             Button(title, action: action)
             #else
@@ -97,10 +97,10 @@ public struct HoverButton: View {
             #if canImport(TokamakDOM)
             DynamicHTML("button", [
                 "class":"btn",
-                "style":"box-shadow: none"
+                "style":"box-shadow:none;filter: brightness(\(isHovering ? "1.5" : "1"))"
             ], listeners: listeners) {
                 label()
-            }.brightness(isHovering ? 0.2 : 0)
+            }
             #elseif os(iOS)
             Button(action: action, label: label)
             #else
