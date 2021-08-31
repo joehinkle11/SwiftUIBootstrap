@@ -230,31 +230,32 @@ public struct BZStack: BStack {
             return "bottom"
         }
     }
+    let fillSpace: Bool
     let content: () -> [AnyViewOrSpacer]
     
     public init(
         alignment: Alignment = .center,
+        fillSpace: Bool = false,
         @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
+        self.fillSpace = fillSpace
         self.content = content
     }
-    
     public var body: some View {
-        HTML("div", ["class": "p-0","style":"display:grid;height:inherit;pointer-events:none"]) {
+        HTML("div", ["class": "p-0 m-0","style":"display:grid;height:inherit"]) {
             let views = content().flatten()
             ForEach(0..<views.count) { i in
                 let view = views[i]
                 HTML("div", [
-                    "class":"w-100 h-100 p-0",
+                    "class":"w-100 h-100 p-0 m-0",
                     "style": "grid-area: 1 / 1 / 1 / 1;text-align:\(textAlignKey);display:table;z-index:\(i)"
                 ]) {
                     HTML("div", [
+                        "class": fillSpace ? "w-100 h-100" : "",
                         "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
                     ]) {
-                        HTML("div",["style":"pointer-events:auto"]) {
-                            view
-                        }
+                        view
                     }
                 }
             }
@@ -262,7 +263,17 @@ public struct BZStack: BStack {
     }
 }
 #else
+import SwiftUI
 typealias BHStack = HStack
 typealias BVStack = VStack
-typealias BZStack = VStack
+typealias BZStack = ZStack
+public extension BZStack {
+    public init(
+        alignment: SwiftUI.Alignment = .center,
+        fillSpace: Bool,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.init(alignment: alignment, content: content)
+    }
+}
 #endif
