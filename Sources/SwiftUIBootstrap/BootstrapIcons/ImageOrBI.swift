@@ -5,8 +5,8 @@
 //  Created by Joseph Hinkle on 8/30/21.
 //
 
-#if canImport(TokamakShim)
-import TokamakShim
+#if canImport(TokamakDOM)
+import TokamakDOM
 
 /// Loads SF symbol for Apple SwiftUI builds and Bootstrap Icon for Tokamak builds
 public struct ImageOrBI: View {

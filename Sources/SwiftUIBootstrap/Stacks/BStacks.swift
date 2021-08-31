@@ -5,9 +5,9 @@
 //  Created by Joseph Hinkle on 8/30/21.
 //
 
-#if canImport(TokamakShim)
+#if canImport(TokamakDOM)
 import Foundation
-import TokamakShim
+import TokamakDOM
 
 /// An alignment position along the vertical axis.
 public enum VerticalAlignment: Equatable {
@@ -243,7 +243,7 @@ public struct BZStack: BStack {
     }
     
     public var body: some View {
-        HTML("div", ["class": "p-0","style":"display:grid;height:inherit"]) {
+        HTML("div", ["class": "p-0","style":"display:grid;height:inherit;pointer-events:none"]) {
             let views = content().flatten()
             ForEach(0..<views.count) { i in
                 let view = views[i]
@@ -252,9 +252,10 @@ public struct BZStack: BStack {
                     "style": "grid-area: 1 / 1 / 1 / 1;text-align:\(textAlignKey);display:table;z-index:\(i)"
                 ]) {
                     HTML("div", [
-                        "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
+                        "style":"display:table-cell;vertical-align:\(verticalAlignKey);pointer-events:auto"
                     ]) {
                         view
+                        //AnyView(view.rawStyle("pointer-events:auto"))
                     }
                 }
             }

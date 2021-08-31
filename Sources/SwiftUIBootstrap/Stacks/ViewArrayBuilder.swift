@@ -5,9 +5,9 @@
 //  Created by Joseph Hinkle on 8/30/21.
 //
 
-#if canImport(TokamakShim)
+#if canImport(TokamakDOM)
 import Foundation
-import TokamakShim
+import TokamakDOM
 
 @_functionBuilder public enum ViewArrayBuilder {
     public static func buildBlock() -> [AnyViewOrSpacer] { [] }
