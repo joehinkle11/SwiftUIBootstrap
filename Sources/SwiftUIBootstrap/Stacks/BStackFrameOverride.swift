@@ -11,47 +11,55 @@ import TokamakDOM
 
 public extension View {
     func frameOld(
-        width: CGFloat? = nil,
-        height: CGFloat? = nil,
-        alignment: Alignment = .center
+        minWidth: CGFloat? = nil,
+        idealWidth: CGFloat? = nil,
+        maxWidth: CGFloat? = nil,
+        minHeight: CGFloat? = nil,
+        idealHeight: CGFloat? = nil,
+        maxHeight: CGFloat? = nil,
+        alignment: TokamakDOM.Alignment = .center
     ) -> some View {
-        return self.frame(width: width, height: height)
+        return self.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment)
     }
 }
 
 public extension BStack {
     @ViewBuilder
     func frame(
-        width: CGFloat? = nil,
-        height: CGFloat? = nil,
-        alignment: Alignment = .center
+        minWidth: CGFloat? = nil,
+        idealWidth: CGFloat? = nil,
+        maxWidth: CGFloat? = nil,
+        minHeight: CGFloat? = nil,
+        idealHeight: CGFloat? = nil,
+        maxHeight: CGFloat? = nil,
+        alignment: TokamakDOM.Alignment = .center
     ) -> some View {
         let classStr: String = {
             var str = ""
-            if width == .infinity {
+            if maxWidth == .infinity {
                 str += "w-100 "
             }
-            if height == .infinity {
+            if maxHeight == .infinity {
                 str += "h-100"
             }
             return str
         }()
-        let hasNonInfinteValue: Bool = {
-            if let width = width, width != .infinity {
+        let hasNonInfiniteValue: Bool = {
+            if let maxWidth = maxWidth, maxWidth != .infinity {
                 return true
             }
-            if let height = height, height != .infinity {
+            if let maxHeight = maxHeight, maxHeight != .infinity {
                 return true
             }
             return false
         }()
         if classStr == "" {
-            self.frameOld(width: width, height: height, alignment: alignment)
+            self.frameOld(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment)
         } else {
-            if hasNonInfinteValue {
+            if hasNonInfiniteValue {
                 HTML("div", ["class":classStr]) {
                     self
-                }.frameOld(width: width == .infinity ? nil : width, height: height == .infinity ? nil : height, alignment: alignment)
+                }.frameOld(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth == .infinity ? nil : maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight == .infinity ? nil : maxHeight, alignment: alignment)
             } else {
                 HTML("div", ["class":classStr]) {
                     self
