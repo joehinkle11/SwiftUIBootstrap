@@ -84,35 +84,47 @@ public struct AnyViewOrSpacer: View {
     let arr: [AnyViewOrSpacer]?
     let anyView: AnyView?
     let spacer: Spacer?
+    let fillRestOfDivView: FillRestOfDivView?
     
     init<T: View>(_ view: T) {
         if let anyViewOrSpacer = view as? AnyViewOrSpacer {
             self.arr = nil
             self.anyView = anyViewOrSpacer.anyView
             self.spacer = anyViewOrSpacer.spacer
+            self.fillRestOfDivView = nil
         } else if let anyViewOrSpacers = view as? [AnyViewOrSpacer] {
             self.arr = anyViewOrSpacers
             self.anyView = nil
             self.spacer = nil
+            self.fillRestOfDivView = nil
         } else if let spacer = view as? Spacer {
             self.arr = nil
             self.anyView = nil
             self.spacer = spacer
+            self.fillRestOfDivView = nil
+        } else if let fillRestOfDivView = view as? FillRestOfDivView {
+            self.arr = nil
+            self.anyView = nil
+            self.spacer = nil
+            self.fillRestOfDivView = fillRestOfDivView
         } else {
             self.arr = nil
             self.anyView = AnyView(view)
             self.spacer = nil
+            self.fillRestOfDivView = nil
         }
     }
     
-    var isSpacer: Bool {
-        spacer != nil
+    var shouldFillView: Bool {
+        spacer != nil || fillRestOfDivView != nil
     }
     
     @ViewBuilder
     public var body: some View {
         if let spacer = spacer {
             spacer
+        } else if let fillRestOfDivView = fillRestOfDivView {
+            fillRestOfDivView.body
         } else if let anyView = anyView {
             anyView
         }
@@ -135,32 +147,47 @@ public struct BHStack: BStack {
     var spacingRounded: Double {
         Double(Int(spacing * 100)) * 0.01
     }
+    let fillSpace: Bool
+    let forceCenter: Bool
     let content: () -> [AnyViewOrSpacer]
     
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
+        fillSpace: Bool = false,
+        forceCenter: Bool = false,
         @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
         self.spacing = spacing ?? defaultStackSpacing
+        self.fillSpace = fillSpace
+        self.forceCenter = forceCenter
         self.content = content
     }
     
     public var body: some View {
         HTML("div", ["class": "w-100 d-flex flex-row p-0"]) {
-            let _views = content().flatten()
-            let hasSpacers = _views.contains(where: {$0.isSpacer})
-            let views: [AnyViewOrSpacer] = hasSpacers ? _views : ([AnyViewOrSpacer(Spacer())] + _views + [AnyViewOrSpacer(Spacer())])
+            let views: [AnyViewOrSpacer] = {
+                if forceCenter {
+                    let _views = content().flatten()
+                    let hasSpacers = _views.contains(where: {$0.shouldFillView})
+                    return hasSpacers ? _views : ([AnyViewOrSpacer(Spacer())] + _views + [AnyViewOrSpacer(Spacer())])
+                } else {
+                    return content().flatten()
+                }
+            }()
             ForEach(0..<views.count) { i in
                 let view = views[i]
                 let isFirst = i == 0
                 let isLast = i == views.count - 1
                 HTML("div", [
-                    "class": "flex-row justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
+                    "class": "flex-row justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace ? " w-100 h-100" : "")",
                     "style": "\(isFirst ? "" : "padding-left:\(spacingRounded)px;")\(isLast ? "" : "padding-right:\(spacingRounded)px");display:table"
                 ]) {
-                    HTML("div", ["style":"display:table-cell;vertical-align:\(verticalAlignKey)"]) {
+                    HTML("div", [
+                        "class": fillSpace ? "w-100 h-100" : "",
+                        "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
+                    ]) {
                         view
                     }
                 }
@@ -175,29 +202,32 @@ public struct BVStack: BStack {
     var spacingRounded: Double {
         Double(Int(spacing * 100)) * 0.01
     }
+    let fillSpace: Bool
     let content: () -> [AnyViewOrSpacer]
     
     public init(
         alignment: HorizontalAlignment = .center,
         spacing: CGFloat? = nil,
+        fillSpace: Bool = false,
         @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
         self.spacing = spacing ?? defaultStackSpacing
+        self.fillSpace = fillSpace
         self.content = content
     }
     
     public var body: some View {
         HTML("div", ["class": "h-100 d-flex flex-column p-0"]) {
             let _views = content().flatten()
-            let hasSpacers = _views.contains(where: {$0.isSpacer})
+            let hasSpacers = _views.contains(where: {$0.shouldFillView})
             let views: [AnyViewOrSpacer] = hasSpacers ? _views : ([AnyViewOrSpacer(Spacer())] + _views + [AnyViewOrSpacer(Spacer())])
             ForEach(0..<views.count) { i in
                 let view = views[i]
                 let isFirst = i == 0
                 let isLast = i == views.count - 1
                 HTML("div", [
-                    "class": "flex-column justify-content-center\(view.isSpacer ? " flex-grow-1" : "")",
+                    "class": "flex-column justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace ? " w-100 h-100" : "")",
                     "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px");margin:\(marginValueForHorizontalAlign(with: alignment))"
                 ]) {
                     view
@@ -243,7 +273,7 @@ public struct BZStack: BStack {
         self.content = content
     }
     public var body: some View {
-        HTML("div", ["class": "p-0 m-0","style":"display:grid;height:inherit"]) {
+        HTML("div", ["class": "p-0 m-0\(fillSpace ? " w-100 h-100" : "")","style":"display:grid\(fillSpace ? "" : ";height:inherit")"]) {
             let views = content().flatten()
             ForEach(0..<views.count) { i in
                 let view = views[i]
@@ -265,7 +295,28 @@ public struct BZStack: BStack {
 #else
 import SwiftUI
 typealias BHStack = HStack
+public extension BHStack {
+    public init(
+        alignment: VerticalAlignment = .center,
+        spacing: CGFloat? = nil,
+        fillSpace: Bool = false,
+        forceCenter: Bool = false,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.init(alignment: alignment, spacing: spacing, content: content)
+    }
+}
 typealias BVStack = VStack
+public extension BVStack {
+    public init(
+        alignment: HorizontalAlignment = .center,
+        spacing: CGFloat? = nil,
+        fillSpace: Bool,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.init(alignment: alignment, spacing: spacing, content: content)
+    }
+}
 typealias BZStack = ZStack
 public extension BZStack {
     public init(
