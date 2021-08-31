@@ -115,8 +115,6 @@ public struct AnyViewOrSpacer: View {
             spacer
         } else if let anyView = anyView {
             anyView
-        } else {
-            Text("nothin")
         }
     }
 }
@@ -252,10 +250,11 @@ public struct BZStack: BStack {
                     "style": "grid-area: 1 / 1 / 1 / 1;text-align:\(textAlignKey);display:table;z-index:\(i)"
                 ]) {
                     HTML("div", [
-                        "style":"display:table-cell;vertical-align:\(verticalAlignKey);pointer-events:auto"
+                        "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
                     ]) {
-                        view
-                        //AnyView(view.rawStyle("pointer-events:auto"))
+                        HTML("div",["style":"pointer-events:auto"]) {
+                            view
+                        }
                     }
                 }
             }
