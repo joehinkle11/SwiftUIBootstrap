@@ -5,6 +5,30 @@
 //  Created by Joseph Hinkle on 8/30/21.
 //
 
+public enum FillSpace {
+    case horizontal, vertical, all, none
+    
+    var classStr: String {
+        switch self {
+        case .horizontal:
+            return " w-100"
+        case .vertical:
+            return " h-100"
+        case .all:
+            return " w-100 h-100"
+        case .none:
+            return ""
+        }
+    }
+    
+    var isVertical: Bool {
+        switch self {
+        case .vertical, .all: return true
+        default: return false
+        }
+    }
+}
+
 #if canImport(TokamakDOM)
 import Foundation
 import TokamakDOM
@@ -147,14 +171,14 @@ public struct BHStack: BStack {
     var spacingRounded: Double {
         Double(Int(spacing * 100)) * 0.01
     }
-    let fillSpace: Bool
+    let fillSpace: FillSpace
     let forceCenter: Bool
     let content: () -> [AnyViewOrSpacer]
     
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
-        fillSpace: Bool = false,
+        fillSpace: FillSpace = .none,
         forceCenter: Bool = false,
         @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
@@ -181,11 +205,11 @@ public struct BHStack: BStack {
                 let isFirst = i == 0
                 let isLast = i == views.count - 1
                 HTML("div", [
-                    "class": "flex-row justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace ? " w-100 h-100" : "")",
+                    "class": "flex-row justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace.classStr)",
                     "style": "\(isFirst ? "" : "padding-left:\(spacingRounded)px;")\(isLast ? "" : "padding-right:\(spacingRounded)px");display:table"
                 ]) {
                     HTML("div", [
-                        "class": fillSpace ? "w-100 h-100" : "",
+                        "class": fillSpace.classStr,
                         "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
                     ]) {
                         view
@@ -202,13 +226,13 @@ public struct BVStack: BStack {
     var spacingRounded: Double {
         Double(Int(spacing * 100)) * 0.01
     }
-    let fillSpace: Bool
+    let fillSpace: FillSpace
     let content: () -> [AnyViewOrSpacer]
     
     public init(
         alignment: HorizontalAlignment = .center,
         spacing: CGFloat? = nil,
-        fillSpace: Bool = false,
+        fillSpace: FillSpace = .none,
         @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
@@ -227,7 +251,7 @@ public struct BVStack: BStack {
                 let isFirst = i == 0
                 let isLast = i == views.count - 1
                 HTML("div", [
-                    "class": "flex-column justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace ? " w-100 h-100" : "")",
+                    "class": "flex-column justify-content-center\(view.shouldFillView ? " flex-grow-1" : "")\(fillSpace.classStr)",
                     "style": "\(isFirst ? "" : "padding-top:\(spacingRounded)px;")\(isLast ? "" : "padding-bottom:\(spacingRounded)px");margin:\(marginValueForHorizontalAlign(with: alignment))"
                 ]) {
                     view
@@ -260,12 +284,12 @@ public struct BZStack: BStack {
             return "bottom"
         }
     }
-    let fillSpace: Bool
+    let fillSpace: FillSpace
     let content: () -> [AnyViewOrSpacer]
     
     public init(
         alignment: Alignment = .center,
-        fillSpace: Bool = false,
+        fillSpace: FillSpace = .none,
         @ViewArrayBuilder content: @escaping () -> [AnyViewOrSpacer]
     ) {
         self.alignment = alignment
@@ -273,7 +297,7 @@ public struct BZStack: BStack {
         self.content = content
     }
     public var body: some View {
-        HTML("div", ["class": "p-0 m-0\(fillSpace ? " w-100 h-100" : "")","style":"display:grid\(fillSpace ? "" : ";height:inherit")"]) {
+        HTML("div", ["class": "p-0 m-0\(fillSpace.classStr)","style":"display:grid\(fillSpace.isVertical ? "" : ";height:inherit")"]) {
             let views = content().flatten()
             ForEach(0..<views.count) { i in
                 let view = views[i]
@@ -282,7 +306,7 @@ public struct BZStack: BStack {
                     "style": "grid-area: 1 / 1 / 1 / 1;text-align:\(textAlignKey);display:table;z-index:\(i)"
                 ]) {
                     HTML("div", [
-                        "class": fillSpace ? "w-100 h-100" : "",
+                        "class": fillSpace.classStr,
                         "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
                     ]) {
                         view
@@ -299,7 +323,7 @@ public extension BHStack {
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
-        fillSpace: Bool = false,
+        fillSpace: FillSpace = .none,
         forceCenter: Bool = false,
         @ViewBuilder content: @escaping () -> Content
     ) {
@@ -311,7 +335,7 @@ public extension BVStack {
     public init(
         alignment: HorizontalAlignment = .center,
         spacing: CGFloat? = nil,
-        fillSpace: Bool,
+        fillSpace: FillSpace = .none,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.init(alignment: alignment, spacing: spacing, content: content)
@@ -321,7 +345,7 @@ typealias BZStack = ZStack
 public extension BZStack {
     public init(
         alignment: SwiftUI.Alignment = .center,
-        fillSpace: Bool,
+        fillSpace: FillSpace,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.init(alignment: alignment, content: content)
