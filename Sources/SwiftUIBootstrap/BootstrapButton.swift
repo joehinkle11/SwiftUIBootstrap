@@ -33,6 +33,7 @@ public struct BootstrapButton<Label> : View where Label : View {
     let size: BootstrapButtonSize?
     let action: () -> Void
     let label: () -> Label
+    let onHover: ((Bool) -> ())?
     
     var sizeStr: String {
         if let size = size {
@@ -41,18 +42,37 @@ public struct BootstrapButton<Label> : View where Label : View {
         return ""
     }
     
-    public init(_ style: BootstrapButtonStyle = .primary, isOutlined: Bool = false, size: BootstrapButtonSize? = nil, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label) {
+    public init(_ style: BootstrapButtonStyle = .primary, isOutlined: Bool = false, size: BootstrapButtonSize? = nil, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label, onHover: ((Bool) -> ())? = nil) {
         self.style = style
         self.isOutlined = isOutlined
         self.size = size
         self.action = action
         self.label = label
+        self.onHover = onHover
+    }
+    
+    var listeners: [String : Listener] {
+        var listeners: [String : Listener] = [
+            "click": { _ in
+                action()
+            }
+        ]
+        if let onHover = onHover {
+            listeners["mouseover"] = { _ in
+                onHover(true)
+            }
+            listeners["mouseout"] = { _ in
+                onHover(false)
+            }
+        }
+        return listeners
     }
     
     public var body: some View {
-        DynamicHTML("button", ["class":"btn btn\(isOutlined ? "-outline" : "")-\(style.rawValue)\(sizeStr)"], listeners: ["click": { _ in
-            action()
-        }]) {
+        DynamicHTML("button", [
+            "class":"btn btn\(isOutlined ? "-outline" : "")-\(style.rawValue)\(sizeStr)",
+            "style":"box-shadow: none"
+        ], listeners: listeners) {
             label()
         }
     }
