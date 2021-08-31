@@ -66,7 +66,7 @@ public struct HoverButton: View {
         if let customHoverLabel = customHoverLabel {
             #if canImport(TokamakDOM)
             DynamicHTML("button", [
-                "class":"btn",
+                "class":"btn w-100 h-100",
                 "style":"box-shadow:none"
             ], listeners: listeners) {
                 customHoverLabel(isHovering)
@@ -96,7 +96,7 @@ public struct HoverButton: View {
         } else if let label = label {
             #if canImport(TokamakDOM)
             DynamicHTML("button", [
-                "class":"btn",
+                "class":"btn w-100 h-100",
                 "style":"box-shadow:none;filter: brightness(\(isHovering ? "1.5" : "1"))"
             ], listeners: listeners) {
                 label()
