@@ -212,6 +212,16 @@ public struct BVStack: BStack {
 
 public struct BZStack: BStack {
     let alignment: Alignment
+    var textAlignKey: String {
+        switch alignment.horizontal {
+        case .leading:
+            return "left"
+        case .center:
+            return "center"
+        case .trailing:
+            return "right"
+        }
+    }
     var verticalAlignKey: String {
         switch alignment.vertical {
         case .top:
@@ -233,25 +243,19 @@ public struct BZStack: BStack {
     }
     
     public var body: some View {
-        HTML("div", ["class": "w-100 h-100 p-0","style":"display:grid"]) {
+        HTML("div", ["class": "p-0","style":"display:grid;height:inherit"]) {
             let views = content().flatten()
             ForEach(0..<views.count) { i in
                 let view = views[i]
                 HTML("div", [
                     "class":"w-100 h-100 p-0",
-                    "style": "grid-area: 1 / 1 / 1 / 1;margin:\(marginValueForHorizontalAlign(with: alignment.horizontal));display:table"
+                    "style": "grid-area: 1 / 1 / 1 / 1;text-align:\(textAlignKey);display:table;z-index:\(i)"
                 ]) {
-//                    HTML("div", [
-////                        "class":"w-100",
-//                        "style":"text-align:\(textAlignKey);display:table"
-//                    ]) {
-                        HTML("div", [
-//                            "class":"h-100",
-                            "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
-                        ]) {
-                            view
-                        }
-//                    }
+                    HTML("div", [
+                        "style":"display:table-cell;vertical-align:\(verticalAlignKey)"
+                    ]) {
+                        view
+                    }
                 }
             }
         }
