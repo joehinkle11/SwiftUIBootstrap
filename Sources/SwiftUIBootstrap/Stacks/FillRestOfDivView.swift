@@ -22,6 +22,7 @@ public extension View {
     }
 }
 #else
+import SwiftUI
 public extension View {
     func fillRestOfDiv() -> some View {
         self

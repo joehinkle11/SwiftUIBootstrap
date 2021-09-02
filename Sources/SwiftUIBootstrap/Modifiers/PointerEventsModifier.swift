@@ -19,6 +19,7 @@ public extension View {
     }
 }
 #else
+import SwiftUI
 public extension View {
     func pointerEvents(_ pointerEvent: PointerEvents) -> some View {
         self
