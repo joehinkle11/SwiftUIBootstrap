@@ -28,7 +28,7 @@ final class IsHovering: ObservableObject {
             for weakRef in Self.hoverObjects {
                 if let isHoveringObj = weakRef.value {
                     if isHoveringObj.id != self.id {
-//                        isHoveringObj.stopHovering()
+                        isHoveringObj.stopHovering()
                     }
                 }
             }
