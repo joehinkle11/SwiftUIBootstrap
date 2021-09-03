@@ -318,9 +318,9 @@ public struct BZStack: BStack {
 }
 #else
 import SwiftUI
-typealias BHStack = HStack
+public typealias BHStack = HStack
 public extension BHStack {
-    public init(
+    init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
         fillSpace: FillSpace = .none,
@@ -330,9 +330,9 @@ public extension BHStack {
         self.init(alignment: alignment, spacing: spacing, content: content)
     }
 }
-typealias BVStack = VStack
+public typealias BVStack = VStack
 public extension BVStack {
-    public init(
+    init(
         alignment: HorizontalAlignment = .center,
         spacing: CGFloat? = nil,
         fillSpace: FillSpace = .none,
@@ -341,9 +341,9 @@ public extension BVStack {
         self.init(alignment: alignment, spacing: spacing, content: content)
     }
 }
-typealias BZStack = ZStack
+public typealias BZStack = ZStack
 public extension BZStack {
-    public init(
+    init(
         alignment: SwiftUI.Alignment = .center,
         fillSpace: FillSpace,
         @ViewBuilder content: @escaping () -> Content

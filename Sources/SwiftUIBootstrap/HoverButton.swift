@@ -9,6 +9,57 @@
 import TokamakDOM
 #else
 import SwiftUI
+
+// helps old hover targets know that they are no longing being hovered on even when swiftui fails to tell them so
+final class IsHovering: ObservableObject {
+    static var hoverObjects: [Weak<IsHovering>] = []
+    let id: UUID
+    init() {
+        self.id = UUID()
+        Self.hoverObjects.append(Weak(value: self))
+    }
+    @Published private var privateIsHovering: Bool = false
+    var isHovering: Bool {
+        privateIsHovering
+    }
+    func onHover(isHovering: Bool) {
+        if isHovering {
+            startHovering()
+            for weakRef in Self.hoverObjects {
+                if let isHoveringObj = weakRef.value {
+                    if isHoveringObj.id != self.id {
+//                        isHoveringObj.stopHovering()
+                    }
+                }
+            }
+            Self.hoverObjects.reap()
+        } else {
+            stopHovering()
+        }
+    }
+    private func startHovering() {
+        if !privateIsHovering {
+            self.privateIsHovering = true
+        }
+    }
+    private func stopHovering() {
+        if privateIsHovering {
+            privateIsHovering = false
+        }
+    }
+}
+// weak reference array from this stackoverflow answer https://stackoverflow.com/questions/24127587/how-do-i-declare-an-array-of-weak-references-in-swift
+class Weak<T: AnyObject> {
+    weak var value : T?
+    init (value: T) {
+        self.value = value
+    }
+}
+extension Array where Element:Weak<IsHovering> {
+    mutating func reap() {
+        self = self.filter { nil != $0.value }
+    }
+}
 #endif
 
 public struct HoverButton: View {
@@ -34,7 +85,12 @@ public struct HoverButton: View {
     let label: (() -> AnyView)?
     let customHoverLabel: ((Bool) -> AnyView)?
     
-    #if os(macOS) || canImport(TokamakDOM)
+    #if os(macOS)
+    @StateObject private var isHoveringObj: IsHovering = IsHovering()
+    var isHovering: Bool {
+        isHoveringObj.isHovering
+    }
+    #elseif canImport(TokamakDOM)
     @State private var isHovering = false
     #endif
     
@@ -74,7 +130,7 @@ public struct HoverButton: View {
             #else
             Button(action: action, label: {
                 #if os(macOS)
-                
+                customHoverLabel(isHovering)
                 #else
                 customHoverLabel(false)
                 #endif
@@ -118,7 +174,7 @@ public struct HoverButton: View {
         button
         #else
         // mac
-        button.onHover { isHovering = $0 }
+        button.onHover(perform: isHoveringObj.onHover)
         #endif
     }
 }
