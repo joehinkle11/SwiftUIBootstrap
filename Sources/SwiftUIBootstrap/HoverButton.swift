@@ -85,7 +85,7 @@ public struct HoverButton: View {
     let label: (() -> AnyView)?
     let customHoverLabel: ((Bool) -> AnyView)?
     
-    #if os(macOS)
+    #if os(macOS) || os(iOS)
     @StateObject private var isHoveringObj: IsHovering = IsHovering()
     var isHovering: Bool {
         isHoveringObj.isHovering
@@ -129,11 +129,7 @@ public struct HoverButton: View {
             }
             #else
             Button(action: action, label: {
-                #if os(macOS)
                 customHoverLabel(isHovering)
-                #else
-                customHoverLabel(false)
-                #endif
             })
             #endif
         } else if let title = title {
@@ -143,8 +139,6 @@ public struct HoverButton: View {
             } onHover: {
                 isHovering = $0
             }
-            #elseif os(iOS)
-            Button(title, action: action)
             #else
             Button(title, action: action)
                 .brightness(isHovering ? 0.2 : 0)
@@ -157,8 +151,6 @@ public struct HoverButton: View {
             ], listeners: listeners) {
                 label()
             }
-            #elseif os(iOS)
-            Button(action: action, label: label)
             #else
             Button(action: action, label: label)
                 .brightness(isHovering ? 0.2 : 0)
@@ -168,12 +160,9 @@ public struct HoverButton: View {
     
     @ViewBuilder
     public var body: some View {
-        #if os(iOS)
-        button
-        #elseif canImport(TokamakDOM)
+        #if canImport(TokamakDOM)
         button
         #else
-        // mac
         button.onHover(perform: isHoveringObj.onHover)
         #endif
     }
