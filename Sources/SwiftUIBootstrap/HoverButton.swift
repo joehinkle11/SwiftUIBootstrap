@@ -62,15 +62,17 @@ extension Array where Element:Weak<IsHovering> {
 }
 #endif
 
+public typealias HoverEffectedView = HoverButton
 public struct HoverButton: View {
     #if canImport(TokamakDOM)
     @Environment(\.colorScheme) var colorScheme
     var listeners: [String : Listener] {
-        var listeners: [String : Listener] = [
-            "click": { _ in
+        var listeners: [String : Listener] = [:]
+        if !noAction {
+            listeners["click"] = { _ in
                 action()
             }
-        ]
+        }
         listeners["mouseover"] = { _ in
             isHovering = true
         }
@@ -84,6 +86,7 @@ public struct HoverButton: View {
     let action: () -> Void
     let label: (() -> AnyView)?
     let customHoverLabel: ((Bool) -> AnyView)?
+    let noAction: Bool // when true, this will not actually be a button but just something with a hover effect
     
     #if os(macOS) || os(iOS)
     @StateObject private var isHoveringObj: IsHovering = IsHovering()
@@ -99,6 +102,14 @@ public struct HoverButton: View {
         self.action = action
         self.label = nil
         self.customHoverLabel = nil
+        self.noAction = false
+    }
+    public init(_ nonButtonTitle: String) {
+        self.title = nonButtonTitle
+        self.action = {}
+        self.label = nil
+        self.customHoverLabel = nil
+        self.noAction = true
     }
     public init<Label: View>(action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label) {
         self.title = nil
@@ -107,6 +118,16 @@ public struct HoverButton: View {
             AnyView(label())
         }
         self.customHoverLabel = nil
+        self.noAction = false
+    }
+    public init<Label: View>(@ViewBuilder nonButtonLabel: @escaping () -> Label) {
+        self.title = nil
+        self.action = {}
+        self.label = {
+            AnyView(nonButtonLabel())
+        }
+        self.customHoverLabel = nil
+        self.noAction = true
     }
     public init<Label: View>(action: @escaping () -> Void, @ViewBuilder customHoverLabel: @escaping (Bool) -> Label) {
         self.title = nil
@@ -115,22 +136,39 @@ public struct HoverButton: View {
         self.customHoverLabel = {
             AnyView(customHoverLabel($0))
         }
+        self.noAction = false
+    }
+    public init<Label: View>(@ViewBuilder nonButtonHoverLabel: @escaping (Bool) -> Label) {
+        self.title = nil
+        self.action = {}
+        self.label = nil
+        self.customHoverLabel = {
+            AnyView(nonButtonHoverLabel($0))
+        }
+        self.noAction = true
     }
     
     @ViewBuilder
     var button: some View {
         if let customHoverLabel = customHoverLabel {
             #if canImport(TokamakDOM)
-            DynamicHTML("button", [
-                "class":"btn w-100 h-100",
+            DynamicHTML(noAction ? "div" : "button", [
+                "class":"\(noAction ? "" : "btn ")w-100 h-100",
                 "style":"box-shadow:none"
             ], listeners: listeners) {
                 customHoverLabel(isHovering)
             }
             #else
-            Button(action: action, label: {
-                customHoverLabel(isHovering)
-            })
+            if noAction {
+                ZStack {
+                    Text("\(isHovering ? "." : "")").frame(width: 1, height: 1).opacity(0) // forces update
+                    customHoverLabel(isHovering)
+                }
+            } else {
+                Button(action: action, label: {
+                    customHoverLabel(isHovering)
+                })
+            }
             #endif
         } else if let title = title {
             #if canImport(TokamakDOM)
@@ -140,20 +178,34 @@ public struct HoverButton: View {
                 isHovering = $0
             }
             #else
-            Button(title, action: action)
-                .brightness(isHovering ? 0.2 : 0)
+            if noAction {
+                ZStack {
+                    Text("\(isHovering ? "." : "")").frame(width: 1, height: 1).opacity(0) // forces update
+                    Text(title).brightness(isHovering ? 0.2 : 0)
+                }
+            } else {
+                Button(title, action: action)
+                    .brightness(isHovering ? 0.2 : 0)
+            }
             #endif
         } else if let label = label {
             #if canImport(TokamakDOM)
-            DynamicHTML("button", [
-                "class":"btn w-100 h-100",
+            DynamicHTML(noAction ? "div" : "button", [
+                "class":"\(noAction ? "" : "btn ")w-100 h-100",
                 "style":"box-shadow:none;filter: brightness(\(isHovering ? "1.5" : "1"))"
             ], listeners: listeners) {
                 label()
             }
             #else
-            Button(action: action, label: label)
-                .brightness(isHovering ? 0.2 : 0)
+            if noAction {
+                ZStack {
+                    Text("\(isHovering ? "." : "")").frame(width: 1, height: 1).opacity(0) // forces update
+                    label().brightness(isHovering ? 0.2 : 0)
+                }
+            } else {
+                Button(action: action, label: label)
+                    .brightness(isHovering ? 0.2 : 0)
+            }
             #endif
         }
     }
