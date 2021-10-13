@@ -31,6 +31,7 @@ public enum FillSpace {
 
 #if canImport(TokamakDOM)
 import Foundation
+import TokamakCore
 import TokamakDOM
 
 /// An alignment position along the vertical axis.

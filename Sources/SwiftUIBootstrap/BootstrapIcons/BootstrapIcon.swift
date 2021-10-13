@@ -18,8 +18,12 @@ public struct BootstrapIcon: View {
         self.style = style
     }
     
+//    public var body: some View {
+//        HTML("i", ["class": "bi-\(name)","style":style])
+//    }
     public var body: some View {
-        HTML("i", ["class": "bi-\(name)","style":style])
+        HTML("img", ["src": "../contents/bootstrap-icons/\(name).svg","style":style])
     }
+    
 }
 #endif
