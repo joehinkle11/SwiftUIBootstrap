@@ -88,13 +88,13 @@ public struct HoverButton: View {
     let customHoverLabel: ((Bool) -> AnyView)?
     let noAction: Bool // when true, this will not actually be a button but just something with a hover effect
     
-    #if os(macOS) || os(iOS)
+    #if canImport(TokamakDOM)
+    @State private var isHovering = false
+    #elseif os(macOS) || os(iOS)
     @StateObject private var isHoveringObj: IsHovering = IsHovering()
     var isHovering: Bool {
         isHoveringObj.isHovering
     }
-    #elseif canImport(TokamakDOM)
-    @State private var isHovering = false
     #endif
     
     public init(_ title: String, action: @escaping () -> Void) {
