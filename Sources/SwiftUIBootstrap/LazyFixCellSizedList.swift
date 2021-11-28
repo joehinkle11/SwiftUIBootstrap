@@ -90,6 +90,7 @@ public struct LazyFixCellSizedList<Data: RandomAccessCollection, RowContent: Vie
             HTML("div", [
                 "id": group.id
             ]) {
+//                let theData = data.dropLast(data.count - 10)
                 ForEach(data) { (dataEl: Data.Element) in
                     LazyFixCellSizedListElementView(
                         dataEl: dataEl,
@@ -211,9 +212,10 @@ fileprivate struct LazyFixCellSizedListElementView<DataElement: Identifiable & L
     
     fileprivate var body: some View {
         if shouldShowElement.shouldRender {
+//            Text("YES index \(dataEl.posInArr)").rawStyle("height:\(fixedHeight.str)")
             rowContent(dataEl).rawStyle("height:\(fixedHeight.str)")
         } else {
-//            Text("index \(dataEl.posInArr)").rawStyle("height:\(fixedHeight.str)")
+//            Text("NOO index \(dataEl.posInArr)").rawStyle("height:\(fixedHeight.str)")
             Text("").rawStyle("height:\(fixedHeight.str)")
         }
     }
