@@ -36,35 +36,34 @@ public protocol ListElementWithIndex {
     var posInArr: Int { get }
 }
 
-public struct LazyFixCellSizedList<Data: RandomAccessCollection, RowContent: View>: View where Data.Element : Identifiable & ListElementWithIndex {
+public struct LazyFixCellSizedList<Data: RandomAccessCollection, TopView: View, RowContent: View>: View where Data.Element : Identifiable & ListElementWithIndex {
     
     private let data: Data
     private let fixedHeight: LazyFixCellSizedListHeight
+    private let scrollViewHeight: String
     private let rowContent: (Data.Element) -> RowContent
+    private let topView: TopView
     @State private var group: ShouldShowElementGroup = ShouldShowElementGroup()
 
     
-    public init(_ data: Data, fixedHeight: LazyFixCellSizedListHeight, rowContent: @escaping (Data.Element) -> RowContent) {
+    public init(_ data: Data, fixedHeight: LazyFixCellSizedListHeight, scrollViewHeight: String = "100%", topView: TopView, rowContent: @escaping (Data.Element) -> RowContent) {
         self.data = data
         self.fixedHeight = fixedHeight
+        self.scrollViewHeight = scrollViewHeight
+        self.topView = topView
+        self.rowContent = rowContent
+    }
+    
+    public init(_ data: Data, fixedHeight: LazyFixCellSizedListHeight, scrollViewHeight: String = "100%", rowContent: @escaping (Data.Element) -> RowContent) where TopView == EmptyView {
+        self.data = data
+        self.fixedHeight = fixedHeight
+        self.scrollViewHeight = scrollViewHeight
+        self.topView = EmptyView()
         self.rowContent = rowContent
     }
     
     private var showsIndicators: Bool {
         false
-    }
-    
-    private var fillCrossAxis: Bool {
-        true
-    }
-    
-    private var scrollX: Bool {
-//        axes.contains(.horizontal)
-        false
-    }
-    private var scrollY: Bool {
-//        axes.contains(.vertical)
-        true
     }
     
     var listeners: [String : Listener] {
@@ -77,12 +76,7 @@ public struct LazyFixCellSizedList<Data: RandomAccessCollection, RowContent: Vie
     
     public var body: some View {
         DynamicHTML("div", [
-            "style": """
-              \(scrollX ? "overflow-x:auto;width:100%;" : "overflow-x:hidden;")
-              \(scrollY ? "overflow-y:auto;height:100%;" : "overflow-y:hidden;")
-              \(fillCrossAxis && scrollX ? "height:100%;" : "")
-              \(fillCrossAxis && scrollY ? "width:100%;" : "")
-              """,
+            "style": "overflow-y:auto;height:\(scrollViewHeight);width:100%;",
             "class": !showsIndicators ? "_tokamak-scrollview _tokamak-scrollview-hideindicators" :
                 "_tokamak-scrollview",
             "id": group.parentId
@@ -90,6 +84,7 @@ public struct LazyFixCellSizedList<Data: RandomAccessCollection, RowContent: Vie
             HTML("div", [
                 "id": group.id
             ]) {
+                topView
 //                let theData = data.dropLast(data.count - 10)
                 ForEach(data) { (dataEl: Data.Element) in
                     LazyFixCellSizedListElementView(
