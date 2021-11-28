@@ -16,4 +16,10 @@ public extension View {
         return self.rawStyle("filter: brightness(\(String(format: "%.2f", amt)))")
     }
 }
+
+public extension View {
+    func blur(radius: CGFloat) -> some View {
+        return self.rawStyle("filter: blur(\(String(format: "%.2f", radius))px);")
+    }
+}
 #endif
