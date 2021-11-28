@@ -6,18 +6,6 @@
 //
 
 
-#if canImport(TokamakDOM)
-import Foundation
-import TokamakDOM
-import JavaScriptKit
-
-
-fileprivate let window = JSObject.global.window
-
-public protocol ListElementWithIndex {
-    var i: Int { get }
-}
-
 public enum LazyFixCellSizedListHeight {
     case byScreenWidth(vw: Int, minusPixels: Int) // height: calc(Xvm - Ypx)   or height: calc(`vm`vm - `minusPixels`px)
     
@@ -34,6 +22,18 @@ public enum LazyFixCellSizedListHeight {
             return window.innerWidth.number! * (Double(vw) / 100.0) - Double(minusPixels)
         }
     }
+}
+
+#if canImport(TokamakDOM)
+import Foundation
+import TokamakDOM
+import JavaScriptKit
+
+
+fileprivate let window = JSObject.global.window
+
+public protocol ListElementWithIndex {
+    var posInArr: Int { get }
 }
 
 public struct LazyFixCellSizedList<Data: RandomAccessCollection, RowContent: View>: View where Data.Element : Identifiable & ListElementWithIndex {
@@ -99,6 +99,8 @@ public struct LazyFixCellSizedList<Data: RandomAccessCollection, RowContent: Vie
                     )
                 }
             }
+        }.onAppear {
+            group.onScroll(height: fixedHeight)
         }
     }
 }
@@ -131,7 +133,7 @@ fileprivate final class ShouldShowElementGroup {
 //            return element
 //        }
 //    }
-    final private var lastTop: Double = 0
+    final private var lastTop: Double = -1000
     final fileprivate func onScroll(height cellHeight: LazyFixCellSizedListHeight) {
         let position = window.getBoundingClientRectForQuerySelector.function!("#\(id)")
         if let top: Double = position.top.number {
@@ -145,11 +147,23 @@ fileprivate final class ShouldShowElementGroup {
                 let cellPixels = cellHeight.pixels
                 let pixelsOverTop = parentTop - top
                 let pixelsOverTopPlusDist = pixelsOverTop + parentHeight
+//                print("cellPixels")
+//                print(cellPixels)
+//                print("pixelsOverTop")
+//                print(pixelsOverTop)
+//                print("pixelsOverTopPlusDist")
+//                print(pixelsOverTopPlusDist)
                 
-                let startingIndex: Int = Int(pixelsOverTop / cellPixels)
-                let endingIndex: Int = Int(pixelsOverTopPlusDist / cellPixels)
+                let startingIndex: Int = Int(pixelsOverTop / cellPixels) - 1
+                let endingIndex: Int = Int(pixelsOverTopPlusDist / cellPixels) + 1
+//                print("startingIndex")
+//                print(startingIndex)
+//                print("endingIndex")
+//                print(endingIndex)
                 for i in startingIndex...endingIndex {
-                    allShouldShowElements[i]?.shouldRender = true
+                    if let el = allShouldShowElements[i], !el.shouldRender {
+                        el.shouldRender = true
+                    }
                 }
             }
         }
@@ -192,14 +206,15 @@ fileprivate struct LazyFixCellSizedListElementView<DataElement: Identifiable & L
         self.dataEl = dataEl
         self.fixedHeight = fixedHeight
         self.rowContent = rowContent
-        self._shouldShowElement = .init(wrappedValue: .find(id: dataEl.id, pos: dataEl.i, in: shouldShowElementGroup))
+        self._shouldShowElement = .init(wrappedValue: .find(id: dataEl.id, pos: dataEl.posInArr, in: shouldShowElementGroup))
     }
     
     fileprivate var body: some View {
         if shouldShowElement.shouldRender {
             rowContent(dataEl).rawStyle("height:\(fixedHeight.str)")
         } else {
-            Text("a").rawStyle("height:\(fixedHeight.str)")
+//            Text("index \(dataEl.posInArr)").rawStyle("height:\(fixedHeight.str)")
+            Text("").rawStyle("height:\(fixedHeight.str)")
         }
     }
 }
@@ -208,7 +223,7 @@ fileprivate struct LazyFixCellSizedListElementView<DataElement: Identifiable & L
 import SwiftUI
 public func LazyFixCellSizedList<Data, RowContent>(
     _ data: Data,
-    fixedHeight: String,
+    fixedHeight: LazyFixCellSizedListHeight,
     rowContent: @escaping (Data.Element) -> RowContent
 ) -> some View where Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable {
     return SwiftUI.List(
